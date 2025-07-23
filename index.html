@@ -6,7 +6,7 @@
 <style>
   body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; padding: 10px; }
   h1 { color: #2c3e50; }
-  input, button { padding: 8px; margin: 5px 0; }
+  input, button, select { padding: 8px; margin: 5px 0; }
   .resultado { background: #f9f9f9; padding: 10px; margin-top: 10px; border-radius: 6px; }
   .conceito { font-weight: bold; margin-top: 10px; }
   .fonte { font-style: italic; color: #666; }
@@ -32,24 +32,42 @@
 </div>
 
 <div class="section">
-  <h2>Imprimir dicionário completo</h2>
-  <button onclick="mostrarDicionarioCompleto()">Mostrar Dicionário</button>
-  <div id="resultadoCompleto"></div>
+  <h2>Imprimir dicionário por letra inicial</h2>
+  <label for="selectLetra">Escolha a letra:</label>
+  <select id="selectLetra" onchange="mostrarDicionarioPorLetra()">
+    <option value="">--Selecione--</option>
+  </select>
+  <div id="resultadoPorLetra"></div>
 </div>
 
 <script>
   let dados = [];
 
-  // Carregar JSON na inicialização
-  fetch('dados.json')
-    .then(response => response.json())
-    .then(data => { dados = data; })
-    .catch(err => alert('Erro ao carregar dados: ' + err));
-
   // Função para remover acento da primeira letra
   function removerAcento(str) {
     return str.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
   }
+
+  // Carregar JSON na inicialização e preencher select de letras
+  fetch('dados.json')
+    .then(response => response.json())
+    .then(data => {
+      dados = data;
+
+      const selectLetra = document.getElementById('selectLetra');
+      const letras = new Set();
+      dados.forEach(({concept}) => {
+        letras.add(removerAcento(concept.charAt(0)).toUpperCase());
+      });
+
+      Array.from(letras).sort().forEach(letra => {
+        const option = document.createElement('option');
+        option.value = letra;
+        option.textContent = letra;
+        selectLetra.appendChild(option);
+      });
+    })
+    .catch(err => alert('Erro ao carregar dados: ' + err));
 
   function buscarPorConceito() {
     const termo = document.getElementById('inputConceito').value.trim().toLowerCase();
@@ -61,7 +79,6 @@
       return;
     }
 
-    // Filtrar dados por conceito contendo termo
     const resultados = dados.filter(item => item.concept.toLowerCase().includes(termo));
 
     if (resultados.length === 0) {
@@ -69,14 +86,12 @@
       return;
     }
 
-    // Agrupar por conceito
     const agrupados = {};
     resultados.forEach(({doculect, concept, transcription, fonte}) => {
       if (!agrupados[concept]) agrupados[concept] = [];
       agrupados[concept].push({doculect, transcription, fonte});
     });
 
-    // Mostrar resultados
     for (const conceito in agrupados) {
       let html = `<div class="conceito">${conceito.charAt(0).toUpperCase() + conceito.slice(1)}:</div><ul>`;
       agrupados[conceito].forEach(({doculect, transcription, fonte}) => {
@@ -97,7 +112,6 @@
       return;
     }
 
-    // Filtrar dados por transcription contendo termo
     const resultados = dados.filter(item => item.transcription.toLowerCase().includes(termo));
 
     if (resultados.length === 0) {
@@ -105,14 +119,12 @@
       return;
     }
 
-    // Agrupar por conceito
     const agrupados = {};
     resultados.forEach(({doculect, concept, transcription, fonte}) => {
       if (!agrupados[concept]) agrupados[concept] = [];
       agrupados[concept].push({doculect, transcription, fonte});
     });
 
-    // Mostrar resultados
     for (const conceito in agrupados) {
       let html = `<div class="conceito">${conceito.charAt(0).toUpperCase() + conceito.slice(1)}:</div><ul>`;
       agrupados[conceito].forEach(({doculect, transcription, fonte}) => {
@@ -123,16 +135,16 @@
     }
   }
 
-  function mostrarDicionarioCompleto() {
-    const resultadoDiv = document.getElementById('resultadoCompleto');
+  function mostrarDicionarioPorLetra() {
+    const letra = document.getElementById('selectLetra').value;
+    const resultadoDiv = document.getElementById('resultadoPorLetra');
     resultadoDiv.innerHTML = '';
 
-    if (dados.length === 0) {
-      resultadoDiv.innerHTML = 'Dicionário vazio.';
+    if (!letra) {
+      resultadoDiv.innerHTML = 'Selecione uma letra para mostrar os conceitos.';
       return;
     }
 
-    // Agrupar por inicial do conceito (sem acento)
     const agrupados = {};
     dados.forEach(({doculect, concept, transcription, fonte}) => {
       const inicial = removerAcento(concept.charAt(0)).toUpperCase();
@@ -141,19 +153,21 @@
       agrupados[inicial][concept].push({doculect, transcription, fonte});
     });
 
-    // Mostrar agrupado
-    for (const letra of Object.keys(agrupados).sort()) {
-      resultadoDiv.innerHTML += `<h3>${letra}:</h3>`;
-      const conceitos = agrupados[letra];
-      for (const conceito of Object.keys(conceitos).sort()) {
-        let html = `<div class="conceito">${conceito.charAt(0).toUpperCase() + conceito.slice(1)}:</div><ul>`;
-        conceitos[conceito].forEach(({doculect, transcription, fonte}) => {
-          html += `<li><b>${doculect.charAt(0).toUpperCase() + doculect.slice(1)}</b>: ${transcription} <span class="fonte">Fonte: ${fonte || 'Não disponível'}</span></li>`;
-        });
-        html += '</ul>';
-        resultadoDiv.innerHTML += html;
-      }
+    if (!agrupados[letra]) {
+      resultadoDiv.innerHTML = `Nenhum conceito encontrado para a letra "${letra}".`;
+      return;
     }
+
+    const conceitos = agrupados[letra];
+    let html = '';
+    for (const conceito of Object.keys(conceitos).sort()) {
+      html += `<div class="conceito">${conceito.charAt(0).toUpperCase() + conceito.slice(1)}:</div><ul>`;
+      conceitos[conceito].forEach(({doculect, transcription, fonte}) => {
+        html += `<li><b>${doculect.charAt(0).toUpperCase() + doculect.slice(1)}</b>: ${transcription} <span class="fonte">Fonte: ${fonte || 'Não disponível'}</span></li>`;
+      });
+      html += '</ul>';
+    }
+    resultadoDiv.innerHTML = html;
   }
 </script>
 
