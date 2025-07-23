@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Dicionário Aruak - Online</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; padding: 10px; }
+  h1 { color: #2c3e50; }
+  input, button { padding: 8px; margin: 5px 0; }
+  .resultado { background: #f9f9f9; padding: 10px; margin-top: 10px; border-radius: 6px; }
+  .conceito { font-weight: bold; margin-top: 10px; }
+  .fonte { font-style: italic; color: #666; }
+  .section { margin-bottom: 30px; }
+</style>
+</head>
+<body>
+
+<h1>Dicionário Aruak - Busca Online</h1>
+
+<div class="section">
+  <h2>Buscar por conceito</h2>
+  <input type="text" id="inputConceito" placeholder="Digite o conceito..." />
+  <button onclick="buscarPorConceito()">Buscar</button>
+  <div id="resultadoConceito"></div>
+</div>
+
+<div class="section">
+  <h2>Buscar por transcrição (letras/sons)</h2>
+  <input type="text" id="inputTranscricao" placeholder="Digite letras ou sons..." />
+  <button onclick="buscarPorTranscricao()">Buscar</button>
+  <div id="resultadoTranscricao"></div>
+</div>
+
+<div class="section">
+  <h2>Imprimir dicionário completo</h2>
+  <button onclick="mostrarDicionarioCompleto()">Mostrar Dicionário</button>
+  <div id="resultadoCompleto"></div>
+</div>
+
+<script>
+  let dados = [];
+
+  // Carregar JSON na inicialização
+  fetch('dados.json')
+    .then(response => response.json())
+    .then(data => { dados = data; })
+    .catch(err => alert('Erro ao carregar dados: ' + err));
+
+  // Função para remover acento da primeira letra
+  function removerAcento(str) {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function buscarPorConceito() {
+    const termo = document.getElementById('inputConceito').value.trim().toLowerCase();
+    const resultadoDiv = document.getElementById('resultadoConceito');
+    resultadoDiv.innerHTML = '';
+
+    if (!termo) {
+      resultadoDiv.innerHTML = 'Digite um conceito para buscar.';
+      return;
+    }
+
+    // Filtrar dados por conceito contendo termo
+    const resultados = dados.filter(item => item.concept.toLowerCase().includes(termo));
+
+    if (resultados.length === 0) {
+      resultadoDiv.innerHTML = `Nenhuma tradução encontrada para: <b>${termo}</b>`;
+      return;
+    }
+
+    // Agrupar por conceito
+    const agrupados = {};
+    resultados.forEach(({doculect, concept, transcription, fonte}) => {
+      if (!agrupados[concept]) agrupados[concept] = [];
+      agrupados[concept].push({doculect, transcription, fonte});
+    });
+
+    // Mostrar resultados
+    for (const conceito in agrupados) {
+      let html = `<div class="conceito">${conceito.charAt(0).toUpperCase() + conceito.slice(1)}:</div><ul>`;
+      agrupados[conceito].forEach(({doculect, transcription, fonte}) => {
+        html += `<li><b>${doculect.charAt(0).toUpperCase() + doculect.slice(1)}</b>: ${transcription} <span class="fonte">Fonte: ${fonte || 'Não disponível'}</span></li>`;
+      });
+      html += '</ul>';
+      resultadoDiv.innerHTML += html;
+    }
+  }
+
+  function buscarPorTranscricao() {
+    const termo = document.getElementById('inputTranscricao').value.trim().toLowerCase();
+    const resultadoDiv = document.getElementById('resultadoTranscricao');
+    resultadoDiv.innerHTML = '';
+
+    if (!termo) {
+      resultadoDiv.innerHTML = 'Digite letras ou sons para buscar na transcrição.';
+      return;
+    }
+
+    // Filtrar dados por transcription contendo termo
+    const resultados = dados.filter(item => item.transcription.toLowerCase().includes(termo));
+
+    if (resultados.length === 0) {
+      resultadoDiv.innerHTML = `Nenhuma transcrição encontrada com: <b>${termo}</b>`;
+      return;
+    }
+
+    // Agrupar por conceito
+    const agrupados = {};
+    resultados.forEach(({doculect, concept, transcription, fonte}) => {
+      if (!agrupados[concept]) agrupados[concept] = [];
+      agrupados[concept].push({doculect, transcription, fonte});
+    });
+
+    // Mostrar resultados
+    for (const conceito in agrupados) {
+      let html = `<div class="conceito">${conceito.charAt(0).toUpperCase() + conceito.slice(1)}:</div><ul>`;
+      agrupados[conceito].forEach(({doculect, transcription, fonte}) => {
+        html += `<li><b>${doculect.charAt(0).toUpperCase() + doculect.slice(1)}</b>: ${transcription} <span class="fonte">Fonte: ${fonte || 'Não disponível'}</span></li>`;
+      });
+      html += '</ul>';
+      resultadoDiv.innerHTML += html;
+    }
+  }
+
+  function mostrarDicionarioCompleto() {
+    const resultadoDiv = document.getElementById('resultadoCompleto');
+    resultadoDiv.innerHTML = '';
+
+    if (dados.length === 0) {
+      resultadoDiv.innerHTML = 'Dicionário vazio.';
+      return;
+    }
+
+    // Agrupar por inicial do conceito (sem acento)
+    const agrupados = {};
+    dados.forEach(({doculect, concept, transcription, fonte}) => {
+      const inicial = removerAcento(concept.charAt(0)).toUpperCase();
+      if (!agrupados[inicial]) agrupados[inicial] = {};
+      if (!agrupados[inicial][concept]) agrupados[inicial][concept] = [];
+      agrupados[inicial][concept].push({doculect, transcription, fonte});
+    });
+
+    // Mostrar agrupado
+    for (const letra of Object.keys(agrupados).sort()) {
+      resultadoDiv.innerHTML += `<h3>${letra}:</h3>`;
+      const conceitos = agrupados[letra];
+      for (const conceito of Object.keys(conceitos).sort()) {
+        let html = `<div class="conceito">${conceito.charAt(0).toUpperCase() + conceito.slice(1)}:</div><ul>`;
+        conceitos[conceito].forEach(({doculect, transcription, fonte}) => {
+          html += `<li><b>${doculect.charAt(0).toUpperCase() + doculect.slice(1)}</b>: ${transcription} <span class="fonte">Fonte: ${fonte || 'Não disponível'}</span></li>`;
+        });
+        html += '</ul>';
+        resultadoDiv.innerHTML += html;
+      }
+    }
+  }
+</script>
+
+</body>
+</html>
