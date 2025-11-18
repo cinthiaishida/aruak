@@ -1,23 +1,17 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "aruak"
 version = "0.1.0"
-authors = [
-    { name = "Cinthia Ishida" }
-]
-description = "Pacote Python que inclui um banco de dados SQLite para consulta."
+description = "Ferramenta de consulta ao banco lexical Aruak"
+authors = [{ name="Cinthia Ishida", email="seu-email@exemplo.com" }]
 readme = "README.md"
 requires-python = ">=3.8"
-license = {text = "MIT"}
-keywords = ["linguistics", "aruak", "amazonian languages", "sqlite", "data"]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-]
 
 [tool.setuptools]
 packages = ["aruak"]
-include-package-data = true
+
+[tool.setuptools.package-data]
+aruak = ["_data/*.db"]
