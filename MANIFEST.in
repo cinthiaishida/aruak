@@ -1,1 +1,2 @@
 recursive-include aruak/_data *.db
+include README.md
