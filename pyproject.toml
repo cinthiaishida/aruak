@@ -5,8 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "aruak"
 version = "0.1.0"
-description = "Ferramenta de consulta ao banco lexical Aruak"
-authors = [{ name="Cinthia Ishida", email="seu-email@exemplo.com" }]
+description = "Ferramenta de consulta ao banco de dados Aruak"
+authors = [{ name="Cinthia Ishida" }]
 readme = "README.md"
 requires-python = ">=3.8"
 
@@ -15,3 +15,4 @@ packages = ["aruak"]
 
 [tool.setuptools.package-data]
 aruak = ["_data/*.db"]
+
