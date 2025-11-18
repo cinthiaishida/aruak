@@ -1,2 +1,7 @@
-#Releases
-#v0.1 - 18/11/2025 release teste, com banco de dados incompleto
+Como usar:
+pip install aruak
+python -m aruak
+
+
+Releases
+v0.1 - 18/11/2025 release teste, com banco de dados incompleto
