@@ -171,6 +171,17 @@
   }
 </script>
 
+<script>
+fetch("dados.json")
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+        // use o JSON aqui
+    })
+    .catch(err => console.error(err));
+</script>
+  
 </body>
 </html>
+
 
