@@ -3,7 +3,7 @@ pip install aruak
 python -m aruak
 
 atualizar:
-pip install -U aruak
+pip install --upgrade aruak
 
 
 Releases
