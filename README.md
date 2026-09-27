@@ -3,6 +3,7 @@
 O banco de dados atualmente conta com informações para as línguas apurinã, piro, iñapari, paresi e resígaro.
 
 Atualizações:
+
 01-12-2025
 - Inclusão de dados de paresi e resígaro
 18-11-2025 
